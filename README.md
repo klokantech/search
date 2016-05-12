@@ -1,6 +1,6 @@
 # Search
 
-Fulltext search with JSON API service implemented on top of SphinxSearch - for indexing Jekyll websites and blog posts.
+Fulltext search service with JSON API implemented on top of SphinxSearch - for indexing Jekyll websites and blog posts.
 
 Initial deploy on http://search.klokantech.com/
 
@@ -67,3 +67,7 @@ JSONP or JSON with CORS
   ]
 }
 ```
+
+Related links:
+https://developers.google.com/custom-search/json-api/v1/overview#data_format
+http://www.opensearch.org/Community/JSON_Formats
