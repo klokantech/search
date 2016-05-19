@@ -22,12 +22,10 @@ Example: http://*www.kartenportal.ch*/search.tsv or ugly http://*blog.klokantech
 
 `tsvpipe` has tab character as hardcoded delimiter and has no quoting rules.
 Each value is interpreted as string inside sphinxsearch, nevertheless of quotes. Using tab character inside text values is not possible!
-The first column in TSV\CSV file must be a document ID. The rest ones must mirror the declaration of fields and attributes in schema definition.
 
 TSV format with fixed columns without header line:
 
 ```
-id - unique document ID
 url - only stored, not indexed
 title - boosted rank fulltext
 content - fulltext
