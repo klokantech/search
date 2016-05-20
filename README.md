@@ -64,13 +64,22 @@ JSONP or JSON with CORS
 
 ```
 {
-  totalResults: 131,
-  results: [ {
-      title:, url:, ... 
-      ...
-      snippet: instead of content ? 
-      rank: for debugging ?
-    }
+  "count": 20,
+  "nextIndex": 20,
+  "startIndex": 0,
+  "totalResults": 31,
+  "results": [
+    {
+      "lang": "en",
+      "tags": "<tags>",
+      "url": "<url>",
+      "title": "<title>",
+      "rank": 31548,
+      "content": "xxx",
+      "date": "2016-05-19T11:06:41+02:00",
+      "type": "<type>",
+      "id": 21
+    },
   ]
 }
 ```
