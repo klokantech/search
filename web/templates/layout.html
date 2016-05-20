@@ -1,0 +1,39 @@
+<html>
+<head>
+  {% block head %}
+  <meta charset="utf-8" />
+  <title>KlokanTech Search {% block title %}domain{% endblock %} - powered by SphinxSearch</title>
+  <meta name="author" content="Klokan Technologies GmbH" />
+  <meta name="description" content="Fulltext search with JSON API service implemented on top of SphinxSearch - for indexing Jekyll websites">
+  <link href="//klokantech.github.io/styles/base.css" rel="stylesheet" />
+  <script type="text/javascript" src="//klokantech.github.io/javascript/kt.js"></script>
+  {% endblock %}
+</head>
+<body onload="load();">
+<div class="container main">
+
+  <h1>KlokanTech Search</h1>
+{% block search_input %}
+<form name="display_name" action="{{ route }}" method="get">
+Search: <input autocomplete="off" id="autocomplete" type="text" name="q" value="{{query}}" class="autocomplete-nominatim" autofocus="autofocus" /><br/>
+<input type="hidden" name="format" value="html" />
+<input type="hidden" name="domain" value="{{ domain }}" />
+<input class="btn" type="submit" value="Search" />
+</form>
+{% endblock %}
+
+<div id="result">
+    {% block result %}{% endblock %}
+</div><!-- #result -->
+
+</div><!-- .container.main -->
+
+<script>
+{% block script %}
+function load() {
+    // new kt.Nominatim(document.getElementById('autocomplete'), '/');
+}
+{% endblock %}
+</script>
+</body>
+</html>
