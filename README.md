@@ -33,6 +33,7 @@ type - filter
 lang - filter
 date - filter
 tags - filter on a set + fulltext; comma-separated
+custom_data - only stored, not indexed, no filter
 ```
 
 All in tab separated value. Web must provide correct TSV (**no tabs in the content**).
@@ -78,6 +79,7 @@ JSONP or JSON with CORS
       "content": "xxx",
       "date": "2016-05-19T11:06:41+02:00",
       "type": "<type>",
+      "custom_data": "xxx",
       "id": 21
     },
   ]
