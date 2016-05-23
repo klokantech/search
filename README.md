@@ -56,7 +56,7 @@ GET /search?domain={domain}&q={q}&type=post&lang=en&date=?????&tags=a,b,c
 
 Paging via OpenSearch query parameters (`count`, `startIndex`)
 
-a la:
+ala:
 http://mapseries.klokantech.com/ethz/sheets?q=brno&format=json&count=20&startIndex=0&callback=_callbacks_._4io49bdn1
 
 ## Results
