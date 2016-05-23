@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block title %}- Results{% endblock %}
+{% block result %}
+<hr>
+{% if rc %}
+<p>Found <b>{{ result['totalResults'] }}</b> results for <i>{{query}}</i> in <i>{{index}}</i>:</p>
+<p>Showing <b>{{ result['results'] | length }}</b> results</p>
+<p>
+{% if 'previousIndex' in result %}
+<a href="{{ previous_page_url }}">Previous page: {{ result['previousIndex'] }}</a>
+{% endif %}
+ | 
+{% if 'nextIndex' in result %}
+<a href="{{ next_page_url }}">Next page: {{ result['nextIndex'] }}</a>
+{% endif %}
+</p>
+<table class="entries" width="100%" border="1" style="border-collapse: collapse;">
+  <tr>
+    <th></th>
+    <th>url</th>
+    <th>title</th>
+    <th>type</th>
+    <th>lang</th>
+    <th>date</th>
+    <th>tags</th>
+  </tr>
+  {% for row in result['results'] %}
+  <tr>
+    <td>{{ loop.index }}</td>
+    {% for col in ('url', 'title', 'type', 'lang', 'date', 'tags') %}
+    <td>
+    {% if col in row %}
+      {{ row[col] }}
+    {% endif %}
+    </td>
+    {% endfor %}
+  </tr>
+  <tr>
+    <td></td>
+    <td colspan="6">{{ row['content'] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>Found 0 results for <i>{{query}}</i> in <i>{{index}}</i>:</p>
+<pre>
+  {{ result | nl2br | safe}}
+</pre>
+{% endif %}
+{% endblock %}

@@ -33,6 +33,7 @@ type - filter
 lang - filter
 date - filter
 tags - filter on a set + fulltext; comma-separated
+custom_data - only stored, not indexed, no filter
 ```
 
 All in tab separated value. Web must provide correct TSV (**no tabs in the content**).
@@ -42,7 +43,7 @@ All in tab separated value. Web must provide correct TSV (**no tabs in the conte
 Endpoint for update of the fulltext index:
 
 ```
-/update?domain={domain}
+POST /update/{domain}
 ```
 
 It downloads http://[domain]/search.tsv and creates index for this domain.
@@ -50,7 +51,7 @@ It downloads http://[domain]/search.tsv and creates index for this domain.
 ## Search endpoint
 
 ```
-/search?domain={domain}&q={q}&type=post&lang=en&date=?????&tags=a,b,c
+GET /search?domain={domain}&q={q}&type=post&lang=en&date=?????&tags=a,b,c
 ```
 
 Paging via OpenSearch query parameters (`count`, `startIndex`)
@@ -64,13 +65,23 @@ JSONP or JSON with CORS
 
 ```
 {
-  totalResults: 131,
-  results: [ {
-      title:, url:, ... 
-      ...
-      snippet: instead of content ? 
-      rank: for debugging ?
-    }
+  "count": 20,
+  "nextIndex": 20,
+  "startIndex": 0,
+  "totalResults": 31,
+  "results": [
+    {
+      "lang": "en",
+      "tags": "<tags>",
+      "url": "<url>",
+      "title": "<title>",
+      "rank": 31548,
+      "content": "xxx",
+      "date": "2016-05-19T11:06:41+02:00",
+      "type": "<type>",
+      "custom_data": "xxx",
+      "id": 21
+    },
   ]
 }
 ```
