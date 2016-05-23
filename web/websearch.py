@@ -218,7 +218,7 @@ def search():
     if domain not in domains:
         data['result'] = {'error': 'Domain not allowed!'}
         return formatResponse(data, 403)
-    domain_id = domain.replace('.', '').replace(':', '')
+    domain_id = domain.replace('.', '').replace(':', '').replace('/', '')
     data['domain'] = domain
 
     index = 'search_{}_index'.format(domain_id)
@@ -284,7 +284,7 @@ def update(domain):
         data['result'] = {'error': 'Domain not allowed!'}
         return formatResponse(data, 403)
     
-    domain_id = domain.replace('.', '').replace(':', '').encode('utf-8')
+    domain_id = domain.replace('.', '').replace(':', '').replace('/', '').encode('utf-8')
     data['domain'] = domain.encode('utf-8')
     url = 'http://%(domain)s/search.tsv' % data
     path = '/data/%(domain)s/search.tsv' % data
