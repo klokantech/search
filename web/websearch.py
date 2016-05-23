@@ -15,6 +15,7 @@ from pprint import pprint, pformat
 from json import dumps
 from os import getenv
 from subprocess import Popen, PIPE
+from urllib import unquote
 import requests
 
 
@@ -102,9 +103,9 @@ def process_query(index, query, query_filter, start=0, count=0):
             repeat -= 1
 
     # Debug
-    resx = result.copy()
-    resx['matches'] = len(result['matches'])
-    pprint(resx)
+    # resx = result.copy()
+    # resx['matches'] = len(result['matches'])
+    # pprint(resx)
 
     status = True
     if not result:
@@ -275,11 +276,12 @@ def search():
 """
 API Update endpoint
 """
-@app.route('/update/<domain>', methods = ['POST'])
+@app.route('/update/<path:domain>', methods = ['POST'])
 def update(domain):
     global domains
     data = {'route': '/update', 'template': None}
 
+    domain = unquote(domain)
     if domain not in domains:
         data['result'] = {'error': 'Domain not allowed!'}
         return formatResponse(data, 403)
