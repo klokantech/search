@@ -9,11 +9,9 @@ RUN apt-get -qq update && apt-get install -qq -y --no-install-recommends \
     nginx \
     python \
     python-setuptools \
-    python-shapely \
     python-pip \
     python-crypto \
     python-flask \
-    python-shapely \
     python-pil \
     unixodbc \
     uwsgi \
