@@ -89,11 +89,11 @@ def process_query(index, query, query_filter, start=0, count=0):
 
             # Prepare base query (search except tags)
             if len(query) > 0 and not query.startswith('@'):
-                query = "@!tags " + query
+                query = '@!tags ' + query
             # Tags contains special prefix
             prefix = ''
             if query_filter['tags'] is not None:
-                prefix = "@tags {} ".format(' | '.join(query_filter['tags'].split(',')))
+                prefix = '@tags "{}" '.format('" | "'.join(query_filter['tags'].split(',')))
 
             # Process query under index
             pprint(prefix + query)
