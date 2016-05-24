@@ -86,17 +86,19 @@ def process_query(index, query, query_filter, start=0, count=0):
                 if query_filter[f] is None or f == 'tags':
                     continue
                 cl.SetFilterString(f, query_filter[f])
+
+            # Prepare base query (search except tags)
+            if len(query) > 0 and not query.startswith('@'):
+                query = "@!tags " + query
             # Tags contains special prefix
             prefix = ''
             if query_filter['tags'] is not None:
-                prefix = "@tags {}".format(' | '.join(query_filter['tags'].split(',')))
-            query = query.encode('utf-8')
-            if prefix:
-                if not query.startswith('@'):
-                    prefix += ' @* '
+                prefix = "@tags {} ".format(' | '.join(query_filter['tags'].split(',')))
+
             # Process query under index
             pprint(prefix + query)
             result = cl.Query ( prefix + query, index )
+
             # pprint(result)
             repeat = 0
         except socket.timeout:
@@ -225,16 +227,18 @@ def search():
     index = 'search_{}_index'.format(domain_id)
     if request.args.get('index'):
         index = request.args.get('index').encode('utf-8')
-    q = request.args.get('q')
+
+    q = request.args.get('q').encode('utf-8')
+
     query_filter = {'type': None, 'lang': None, 'date': None, 'tags': None}
+    filter = False
     for f in query_filter:
         if request.args.get(f):
             v = request.args.get(f)
             query_filter[f] = v.encode('utf-8')
+            filter = True
 
-    pprint(query_filter)
-
-    if not q:
+    if not q and not filter:
         data['result'] = {'error': 'Missing query!'}
         return formatResponse(data, 404)
     data['query'] = q
