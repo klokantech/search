@@ -1,0 +1,76 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <h1>KlokanTech Search demo</h1>
+    <form>
+      <input type="text" id="query" />
+      <input type="submit" onclick="search();return false;" value="Search" />
+    </form>
+    <div id="paging"></div>
+    <div id="results"></div>
+    <script>
+      var service = 'http://search.klokantech.com/search';
+      var domain = 'www.maptiler.com';
+      var count = 4; // results per page
+
+      var queryEl = document.getElementById('query');
+      var pagingEl = document.getElementById('paging');
+      var resultsEl = document.getElementById('results');
+
+      var baseUrl;
+      function showresults(data) {
+        var html = '';
+
+        data.results.forEach(function(item) {
+          html += '<a href="' + item.url + '">' + item.title + '</a><br />';
+          html += '<b>date:</b> ' + item.date + ' <b>category: </b> ' + item.type+ ' <b>type:</b> ' + item.type + ' <b>lang:</b> ' + item.lang + ' <b>tags:</b> ' + item.tags + '<br />';
+          html += '<small>' + item.content + '</small><br />';
+          html += '<pre>' + item.custom_data + '</pre>';
+        });
+
+        resultsEl.innerHTML = html;
+
+        updatepaging(data.totalResults, data.startIndex);
+      }
+
+      function updatepaging(totalResults, startIndex) {
+        var pages = Math.ceil(totalResults / count);
+        var currentI = Math.floor(startIndex / count);
+
+        var html = 'Found ' + totalResults + ' results<br />';
+        if (pages > 1) {
+          html += 'Page: ';
+          for (var i = 0; i < pages; i++) {
+            if (i == currentI) {
+              html += '<span>' + (i + 1) + '</span> ';
+            } else {
+              html += '<a href="#" onclick="javascript:showPage(' + i + ');return false;">' + (i + 1) + '</a> ';
+            }
+          }
+        }
+        html += '<br /><br />';
+
+        pagingEl.innerHTML = html;
+      }
+
+      function search() {
+        var q = queryEl.value;
+        if (q.length > 0) {
+          baseUrl = service + '?callback=showresults&' +
+              'domain=' + domain + '&q=' + queryEl.value + '&count=' + count;
+          showPage(0);
+        }
+      }
+
+      function showPage(i) {
+        resultsEl.innerHTML = 'Loading...';
+
+        var url = baseUrl + '&startIndex=' + (i * count);
+        var script = document.createElement('script');
+        script.src = url;
+        document.getElementsByTagName('head')[0].appendChild(script);
+      }
+    </script>
+  </body>
+</html>
