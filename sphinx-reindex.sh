@@ -2,6 +2,12 @@
 
 REINDEX=0
 
+# Copy sample file if missing
+if [ ! -f data/sample/search.tsv ]; then
+    mkdir -p /data/sample/
+    cp /sample.tsv data/sample/search.tsv
+fi
+
 # Download search.tsv file from domains
 if [ ! "$DOMAINS" = "" ]; then
     list_domain=$(echo $DOMAINS | tr "," "\n")
@@ -14,12 +20,6 @@ if [ ! "$DOMAINS" = "" ]; then
             REINDEX=1
         fi
     done
-fi
-
-# Copy sample file if missing
-if [ ! -f data/sample/search.tsv ]; then
-    mkdir -p /data/sample/
-    cp /sample.tsv data/sample/search.tsv
 fi
 
 # Reindex and rotate files
