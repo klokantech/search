@@ -3,6 +3,7 @@ FROM debian:8
 RUN apt-get -qq update && apt-get install -qq -y --no-install-recommends \
     ca-certificates \
     curl \
+    gawk \
     libexpat1 \
     libpq5 \
     mysql-client \
@@ -15,7 +16,8 @@ RUN apt-get -qq update && apt-get install -qq -y --no-install-recommends \
     python-pil \
     unixodbc \
     uwsgi \
-    uwsgi-plugin-python
+    uwsgi-plugin-python \
+&& pip install iso8601
 
 RUN curl -s \
     http://sphinxsearch.com/files/sphinxsearch_2.2.10-release-1~jessie_amd64.deb \

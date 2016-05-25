@@ -17,6 +17,10 @@ from os import getenv
 from subprocess import Popen, PIPE
 from urllib import unquote
 import requests
+import iso8601
+import datetime
+import time
+import sys
 
 
 app = Flask(__name__, template_folder='templates/')
@@ -82,10 +86,28 @@ def process_query(index, query, query_filter, start=0, count=0):
             })
 
             # Prepare filter for query, except tags
-            for f in query_filter:
-                if query_filter[f] is None or f == 'tags':
+            for f in ['date', 'type', 'lang']:
+                if f not in query_filter or query_filter[f] is None:
                     continue
                 cl.SetFilterString(f, query_filter[f])
+
+            # Prepare date filtering
+            datestart = 0
+            dateend = 0
+            try:
+                de = datetime.datetime.utcnow().utctimetuple()
+                dateend = int(time.mktime(de))
+                if query_filter['datestart'] is not None:
+                    ds = iso8601.parse_date(query_filter['datestart']).utctimetuple()
+                    datestart = int(time.mktime(ds))
+                if query_filter['dateend'] is not None:
+                    de = iso8601.parse_date(query_filter['dateend']).utctimetuple()
+                    dateend = int(time.mktime(de))
+                if datestart > 0 or dateend > 0:
+                    cl.SetFilterRange('date_filter', datestart, dateend)
+            except Exception as ex:
+                print >> sys.stderr, 'Cannot prepare filter range on date: ' + str(ex)
+                pass
 
             # Prepare base query (search except tags)
             if len(query) > 0 and not query.startswith('@'):
@@ -121,18 +143,19 @@ def process_query(index, query, query_filter, start=0, count=0):
     result['count'] = count
     result['startIndex'] = start
     result['status'] = status
-    return status, prepareResultJson(result)
+    return status, prepareResultJson(result, query_filter)
 
 
 
 # ---------------------------------------------------------
-def prepareResultJson(result):
+def prepareResultJson(result, query_filter):
     from pprint import pprint
 
+    count = result['count']
     response = {
         'results': [],
         'startIndex': result['startIndex'],
-        'count': result['count'],
+        'count': count,
         'totalResults': result['total_found'],
     }
     for row in result['matches']:
@@ -230,7 +253,8 @@ def search():
 
     q = request.args.get('q').encode('utf-8')
 
-    query_filter = {'type': None, 'lang': None, 'date': None, 'tags': None}
+    query_filter = {'type': None, 'lang': None, 'date': None,
+        'tags': None, 'datestart': None, 'dateend': None}
     filter = False
     for f in query_filter:
         if request.args.get(f):
