@@ -31,7 +31,7 @@ title - boosted rank fulltext
 content - fulltext
 type - filter
 lang - filter
-date - filter
+date - filter, in ISO 8601 format: YYYY-MM-DDTHH:MM:SS+HH:MM
 tags - filter on a set + fulltext; comma-separated
 custom_data - only stored, not indexed, no filter
 ```
@@ -78,6 +78,7 @@ JSONP or JSON with CORS
       "rank": 31548,
       "content": "xxx",
       "date": "2016-05-19T11:06:41+02:00",
+      "date_filter": 1463648801.0,
       "type": "<type>",
       "custom_data": "xxx",
       "id": 21
