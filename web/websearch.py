@@ -78,11 +78,12 @@ def process_query(index, query, query_filter, start=0, count=0):
             cl.SetConnectTimeout(5.0) # float seconds
             cl.SetLimits(start, count) #offset, limit, maxmatches=0, cutoff=0
             # cl.SetSortMode( SPH_SORT_ATTR_DESC, 'date')
-            cl.SetMatchMode(SPH_MATCH_EXTENDED2)
+            # cl.SetMatchMode(SPH_MATCH_EXTENDED2)
+            cl.SetRankingMode(SPH_RANK_SPH04)
             cl.SetFieldWeights({
-                'title': 30,
+                'title': 500,
                 'content': 1,
-                'tags': 15,
+                'tags': 20,
             })
 
             # Prepare filter for query, except tags
