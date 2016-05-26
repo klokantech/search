@@ -21,6 +21,7 @@ import iso8601
 import datetime
 import time
 import sys
+import MySQLdb
 
 
 app = Flask(__name__, template_folder='templates/')
@@ -166,9 +167,155 @@ def process_query(index, query, query_filter, start=0, count=0):
 
 
 # ---------------------------------------------------------
-def prepareResultJson(result, query_filter):
-    from pprint import pprint
+"""
+Process query to Sphinx searchd with mysql
+"""
+def process_query_mysql(index, query, query_filter, start=0, count=0):
+    global SEARCH_MAX_COUNT, SEARCH_DEFAULT_COUNT
+    # default server configuration
+    host = '127.0.0.1'
+    port = 9306
+    if getenv('WEBSEARCH_SERVER'):
+        host = getenv('WEBSEARCH_SERVER')
+    if getenv('WEBSEARCH_SERVER_PORT'):
+        port = int(getenv('WEBSEARCH_SERVER_PORT'))
 
+    try:
+        db = MySQLdb.connect(host=host, port=port, user='root')
+        cursor = db.cursor()
+    except Exception as ex:
+        result = {
+            'total_found': 0,
+            'matches': [],
+            'message': str(ex),
+            'status': False,
+            'count': 0,
+            'startIndex': start,
+        }
+        return False, result
+
+    if count == 0:
+        count = SEARCH_DEFAULT_COUNT
+    count = min(SEARCH_MAX_COUNT, count)
+
+    argsFilter = []
+    whereFilter = []
+
+    # Prepare query
+    whereFilter.append('MATCH(%s)')
+    argsFilter.append(query)
+
+    # Prepare filter for query
+    for f in ['date', 'type', 'lang', 'tags']:
+        if query_filter[f] is None:
+            continue
+        inList = []
+        for val in query_filter[f]:
+            argsFilter.append(val)
+            inList.append('%s')
+        # Creates where condition: f in (%s, %s, %s...)
+        whereFilter.append('{} in ({})'.format(f, ', '.join(inList)))
+
+    sortBy = []
+    # Prepare sorting by custom or default
+    if query_filter['sortBy'] is not None:
+        for attr in query_filter['sortBy']:
+            attr = attr.split('-')
+            # List of supported sortBy columns - to prevent SQL injection
+            if attr[0] not in ('date', 'lang', 'type', 'weight', 'id'):
+                print >> sys.stderr, 'Invalid sortBy column ' + attr[0]
+                continue
+            asc = 'ASC'
+            if len(attr) > 1 and (attr[1] == 'desc' or attr[1] == 'DESC'):
+                asc = 'DESC'
+            sortBy.append('{} {}'.format(attr[0], asc))
+
+    if len(sortBy) == 0:
+        sortBy.append('weight DESC')
+
+    # Prepare date filtering in where clause
+    datestart = 0
+    dateend = 0
+    try:
+        de = datetime.datetime.utcnow().utctimetuple()
+        dateend = int(time.mktime(de))
+        if query_filter['datestart'] is not None:
+            ds = iso8601.parse_date(query_filter['datestart']).utctimetuple()
+            datestart = int(time.mktime(ds))
+        if query_filter['dateend'] is not None:
+            de = iso8601.parse_date(query_filter['dateend']).utctimetuple()
+            dateend = int(time.mktime(de))
+
+        if datestart > 0:
+            whereFilter.append('%s < date_filter')
+            argsFilter.append(datestart)
+        if dateend > 0:
+            whereFilter.append('date_filter < %s')
+            argsFilter.append(dateend)
+    except Exception as ex:
+        print >> sys.stderr, 'Cannot prepare filter range on date: ' + str(ex) + str(query_filter)
+        pass
+
+    # Field weights and other options
+    # ranker=expr('sum(lcs*user_weight)*1000+bm25') == SPH_RANK_PROXIMITY_BM25
+    # ranker=expr('sum((4*lcs+2*(min_hit_pos==1)+exact_hit)*user_weight)*1000+bm25') == SPH_RANK_SPH04
+    # ranker=expr('sum((4*lcs+2*(min_hit_pos==1)+100*exact_hit)*user_weight)*1000+bm25') == SPH_RANK_SPH04 boosted with exact_hit
+    # select @weight+IF(fieldcrc==$querycrc,10000,0) AS weight
+    option = "field_weights = (title = 500, content = 1), ranker = sph04, retry_count = 3, retry_delay = 200"
+    sql = "SELECT WEIGHT() as weight, * FROM {} WHERE {} ORDER BY {} LIMIT %s, %s OPTION {};".format(
+        index,
+        ' AND '.join(whereFilter),
+        ', '.join(sortBy),
+        option
+    )
+
+    status = True
+    result = {
+        'total_found': 0,
+        'matches': [],
+        'message': None,
+    }
+
+    try:
+        args = argsFilter + [start, count]
+        q = cursor.execute(sql, args)
+        pprint([sql, args, cursor._last_executed, q])
+        desc = cursor.description
+        matches = []
+        for row in cursor:
+            match = {
+                'weight' : 0,
+                'attrs' : {},
+                'id' : 0,
+            }
+            for (name, value) in zip(desc, row):
+                col = name[0]
+                if col == 'id':
+                    match['id'] = value
+                elif col == 'weight':
+                    match['weight'] = value
+                else:
+                    match['attrs'][col] = value
+            matches.append(match)
+        # ~ for row in cursor
+        result['matches'] = matches
+
+        q = cursor.execute('SHOW META LIKE %s', ('total_found',))
+        for row in cursor:
+            result['total_found'] = row[1]
+    except Exception as ex:
+        status = False
+        result['message'] = str(ex)
+
+    result['count'] = count
+    result['startIndex'] = start
+    result['status'] = status
+    return status, prepareResultJson(result, query_filter)
+
+
+
+# ---------------------------------------------------------
+def prepareResultJson(result, query_filter):
     count = result['count']
     response = {
         'results': [],
@@ -176,6 +323,9 @@ def prepareResultJson(result, query_filter):
         'count': count,
         'totalResults': result['total_found'],
     }
+    if 'message' in result and result['message']:
+        response['message'] = result['message']
+
     for row in result['matches']:
         r = row['attrs']
         res = {'rank': row['weight'], 'id': row['id']}
@@ -283,6 +433,8 @@ def search():
                 vl = request.args.getlist(f)
                 if len(vl) == 1:
                     v = vl[0].encode('utf-8')
+                    # This argument can be list separated by comma
+                    v = v.split(',')
                 elif len(vl) > 1:
                     v = [x.encode('utf-8') for x in vl]
             if v is None:
@@ -307,7 +459,7 @@ def search():
     data['url'] = request.url
 
     rc = False
-    rc, result = process_query(index, q, query_filter, start, count)
+    rc, result = process_query_mysql(index, q, query_filter, start, count)
     if rc:
         code = 200
 
@@ -317,6 +469,8 @@ def search():
     args = dict(request.args)
     if 'startIndex' in args:
         del(args['startIndex'])
+    if 'count' in result:
+        args['count'] = result['count']
     # pprint(request.url)
 
     data['previous_page_url'] = data['next_page_url'] = '#'

@@ -14,6 +14,7 @@ RUN apt-get -qq update && apt-get install -qq -y --no-install-recommends \
     python-crypto \
     python-flask \
     python-pil \
+    python-mysqldb \
     unixodbc \
     uwsgi \
     uwsgi-plugin-python \
