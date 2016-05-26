@@ -92,6 +92,23 @@ def process_query(index, query, query_filter, start=0, count=0):
                     continue
                 cl.SetFilterString(f, query_filter[f])
 
+            # Prepare sorting by custom or default
+            if query_filter['sortBy'] is not None:
+                v = query_filter['sortBy']
+                if not isinstance(v, list):
+                    v = [v]
+                sorting = []
+                for attr in v:
+                    # column-asc/desc
+                    attr = attr.split('-')
+                    asc = 'ASC'
+                    if len(attr) > 1 and (attr[1] == 'desc' or attr[1] == 'DESC'):
+                        asc = 'DESC'
+                    sorting.append('{} {}'.format(attr[0], asc))
+                cl.SetSortMode(SPH_SORT_EXTENDED, ', '.join(sorting))
+            else:
+                cl.SetSortMode(SPH_SORT_EXTENDED, '@relevance DESC')
+
             # Prepare date filtering
             datestart = 0
             dateend = 0
@@ -255,12 +272,23 @@ def search():
     q = request.args.get('q').encode('utf-8')
 
     query_filter = {'type': None, 'lang': None, 'date': None,
-        'tags': None, 'datestart': None, 'dateend': None}
+        'tags': None, 'datestart': None, 'dateend': None,
+        'sortBy': None}
     filter = False
     for f in query_filter:
         if request.args.get(f):
-            v = request.args.get(f)
-            query_filter[f] = v.encode('utf-8')
+            v = None
+            # Some arguments may be list
+            if f in ('type', 'lang', 'sortBy', 'tags'):
+                vl = request.args.getlist(f)
+                if len(vl) == 1:
+                    v = vl[0].encode('utf-8')
+                elif len(vl) > 1:
+                    v = [x.encode('utf-8') for x in vl]
+            if v is None:
+                vl = request.args.get(f)
+                v = vl.encode('utf-8')
+            query_filter[f] = v
             filter = True
 
     if not q and not filter:
