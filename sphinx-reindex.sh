@@ -23,7 +23,7 @@ if [ ! "$DOMAINS" = "" ]; then
 fi
 
 # Reindex and rotate files
-if [ $REINDEX -eq 1 ]; then
+if [ $REINDEX -eq 1 -o "$FORCE_REINDEX" = "yes" ]; then
     mkdir -p /data/index/
     /usr/bin/indexer -c /etc/sphinxsearch/sphinx.conf --rotate --all
 fi
