@@ -247,7 +247,7 @@ def process_query_mysql(index, query, query_filter, start=0, count=0):
             dateend = int(time.mktime(de))
 
         if datestart > 0:
-            whereFilter.append('%s < date_filter')
+            whereFilter.append('date_filter > %s')
             argsFilter.append(datestart)
         if dateend > 0:
             whereFilter.append('date_filter < %s')
