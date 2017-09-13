@@ -31,12 +31,13 @@ title - boosted rank fulltext
 content - fulltext
 type - filter
 lang - filter
-date - filter, in ISO 8601 format: YYYY-MM-DDTHH:MM:SS+HH:MM
+date - filter, in ISO 8601 format: YYYY-MM-DDTHH:MM:SS+HH:MM, required
 tags - filter on a set + fulltext; comma-separated
 custom_data - only stored, not indexed, no filter
 ```
 
 All in tab separated value. Web must provide correct TSV (**no tabs in the content**).
+Note: The `date` column is required, because this component filter via `date_end` by default of the actual time. This allows to create data content in the future (for an example the prepared article, which will be published in the future) without searching in them.
 
 ## Update endpoint
 
