@@ -33,12 +33,19 @@ if domains is None or len(domains) < 0:
     raise Exception('Missing required environment variable DOMAINS!')
     sys.exit(1)
 
+
+def get_domain_id(domain):
+    # Remove unexpected characters: .:/-,
+    return domain.replace('.', '').replace(':', '').replace('/', '').replace('-', '').replace(',', '')
+
+
 # Split domains by comma and prepare source/index for this domain:
 # Input data /data/<domain>/search.tsv
 # Prepare domain IDs
 domains = domains.split(',')
 domain_ids = {}
 for domain in domains:
+    domain_id = get_domain_id(domain)
     # Check uniqueness and skip duplicates
     if domain_id in domain_ids.values():
         continue
@@ -52,11 +59,6 @@ if getenv('SEARCH_MAX_COUNT'):
     SEARCH_MAX_COUNT = int(getenv('SEARCH_MAX_COUNT'))
 if getenv('SEARCH_DEFAULT_COUNT'):
     SEARCH_DEFAULT_COUNT = int(getenv('SEARCH_DEFAULT_COUNT'))
-
-
-def get_domain_id(domain):
-    # Remove unexpected characters: .:/-,
-    return domain.replace('.', '').replace(':', '').replace('/', '').replace('-', '').replace(',', '')
 
 
 # ---------------------------------------------------------
