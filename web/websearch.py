@@ -35,7 +35,14 @@ if domains is None or len(domains) < 0:
 
 # Split domains by comma and prepare source/index for this domain:
 # Input data /data/<domain>/search.tsv
+# Prepare domain IDs
 domains = domains.split(',')
+domain_ids = {}
+for domain in domains:
+    # Check uniqueness and skip duplicates
+    if domain_id in domain_ids.values():
+        continue
+    domain_ids[domain] = domain_id
 
 
 # Return maximal number of results
@@ -416,7 +423,7 @@ API Search endpoint
 """
 @app.route('/search')
 def search():
-    global domains
+    global domains, domain_ids
     code = 400
 
     data = {'query': '', 'route': '/search', 'template': 'answer.html'}
@@ -426,7 +433,10 @@ def search():
     if domain not in domains:
         data['result'] = {'error': 'Domain not allowed!'}
         return formatResponse(data, 403)
-    domain_id = get_domain_id(domain)
+    if domain not in domain_ids:
+        data['result'] = {'error': 'Duplicated domain is skipped!'}
+        return formatResponse(data, 404)
+    domain_id = domain_ids[domain]
     data['domain'] = domain
 
     index = 'search_{}_index'.format(domain_id)
@@ -505,15 +515,18 @@ API Update endpoint
 """
 @app.route('/update/<path:domain>', methods=['POST'])
 def update(domain):
-    global domains
+    global domains, domain_ids
     data = {'route': '/update', 'template': None}
 
     domain = unquote(domain)
     if domain not in domains:
         data['result'] = {'error': 'Domain not allowed!'}
         return formatResponse(data, 403)
+    if domain not in domain_ids:
+        data['result'] = {'error': 'Duplicated domain is skipped!'}
+        return formatResponse(data, 404)
 
-    domain_id = get_domain_id(domain).encode('utf-8')
+    domain_id = domain_ids[domain].encode('utf-8')
     data['domain'] = domain.encode('utf-8')
     data['protocol'] = 'http'
     if request.args.get('https', None):

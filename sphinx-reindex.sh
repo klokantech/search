@@ -14,7 +14,7 @@ if [ ! "$DOMAINS" = "" ]; then
     for domain in $list_domain
     do
         if [ ! -f /data/$domain/search.tsv ]; then
-            echo "Downloading  $domain"
+            echo "Downloading  $domain/search.tsv"
             mkdir -p /data/$domain/
             curl -Ls http://$domain/search.tsv -o /data/$domain/search.tsv
             REINDEX=1
