@@ -510,7 +510,10 @@ def update(domain):
 
     domain_id = domain.replace('.', '').replace(':', '').replace('/', '').encode('utf-8')
     data['domain'] = domain.encode('utf-8')
-    url = 'http://%(domain)s/search.tsv' % data
+    data['protocol'] = 'http'
+    if request.args.get('https', None):
+        data['protocol'] = 'https'
+    url = '%(protocol)s://%(domain)s/search.tsv' % data
     path = '/data/%(domain)s/search.tsv' % data
 
     try:
