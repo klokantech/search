@@ -15,7 +15,7 @@ Always downloading and indexing the file:
 `http://[domain]/search.tsv`
 
 
-Example: http://*www.kartenportal.ch*/search.tsv or ugly http://*blog.klokantech.com:8080/beta*/search.tsv
+Example: http://www.kartenportal.ch/search.tsv or https://blog.klokantech.com/search.tsv
 
 
 ## Input TSV format
@@ -34,6 +34,7 @@ lang - filter
 date - filter, in ISO 8601 format: YYYY-MM-DDTHH:MM:SS+HH:MM, required
 tags - filter on a set + fulltext; comma-separated
 custom_data - only stored, not indexed, no filter
+product - filter on a set + fulltext; comma-separated, optional (can be omitted)
 ```
 
 All in tab separated value. Web must provide correct TSV (**no tabs in the content**).

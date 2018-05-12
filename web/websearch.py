@@ -62,8 +62,8 @@ def process_query(index, query, query_filter, start=0, count=0):
         port = int(getenv('WEBSEARCH_SERVER_PORT'))
     # pprint([host, port, getenv('WEBSEARCH_SERVER')])
 
-    #querylist = query.split(" ")
-    #query = "|".join(querylist)
+    # querylist = query.split(" ")
+    # query = "|".join(querylist)
 
     if count == 0:
         count = SEARCH_DEFAULT_COUNT
@@ -75,9 +75,9 @@ def process_query(index, query, query_filter, start=0, count=0):
     while repeat > 0:
         try:
             cl = SphinxClient()
-            cl.SetServer (host, port)
-            cl.SetConnectTimeout(5.0) # float seconds
-            cl.SetLimits(start, count) #offset, limit, maxmatches=0, cutoff=0
+            cl.SetServer(host, port)
+            cl.SetConnectTimeout(5.0)       # float seconds
+            cl.SetLimits(start, count)      # offset, limit, maxmatches=0, cutoff=0
             # cl.SetSortMode( SPH_SORT_ATTR_DESC, 'date')
             # cl.SetMatchMode(SPH_MATCH_EXTENDED2)
             cl.SetRankingMode(SPH_RANK_SPH04)
@@ -138,7 +138,7 @@ def process_query(index, query, query_filter, start=0, count=0):
 
             # Process query under index
             pprint(prefix + query)
-            result = cl.Query ( prefix + query, index )
+            result = cl.Query(prefix + query, index)
 
             # pprint(result)
             repeat = 0
@@ -201,12 +201,22 @@ def process_query_mysql(index, query, query_filter, start=0, count=0):
     argsFilter = []
     whereFilter = []
 
+    appended_match = ''
+    # Update match query to use query_filter (tags and product)
+    for f in ['tags', 'product']:
+        if query_filter[f] is None:
+            continue
+        # construct @<field> (<val1> | <val2>)
+        appended_match += ' @{} ({})'.format(
+            f,
+            ' | '.join(query_filter[f]))
+
     # Prepare query
     whereFilter.append('MATCH(%s)')
-    argsFilter.append(query)
+    argsFilter.append(query + appended_match)
 
     # Prepare filter for query
-    for f in ['date', 'type', 'lang', 'tags']:
+    for f in ['date', 'type', 'lang']:
         if query_filter[f] is None:
             continue
         inList = []
@@ -284,9 +294,9 @@ def process_query_mysql(index, query, query_filter, start=0, count=0):
         matches = []
         for row in cursor:
             match = {
-                'weight' : 0,
-                'attrs' : {},
-                'id' : 0,
+                'weight': 0,
+                'attrs': {},
+                'id': 0,
             }
             for (name, value) in zip(desc, row):
                 col = name[0]
@@ -313,7 +323,6 @@ def process_query_mysql(index, query, query_filter, start=0, count=0):
     return status, prepareResultJson(result, query_filter)
 
 
-
 # ---------------------------------------------------------
 def prepareResultJson(result, query_filter):
     count = result['count']
@@ -333,7 +342,7 @@ def prepareResultJson(result, query_filter):
             if isinstance(r[attr], str):
                 res[attr] = r[attr].decode('utf-8')
             else:
-                res[ attr ] = r[attr]
+                res[attr] = r[attr]
         response['results'].append(res)
 
     # Prepare next and previous index
@@ -367,11 +376,11 @@ def formatResponse(data, code=200):
             data['route'] = '/'
         return render_template(tpl, rc=True if code == 200 else False, **data), code
 
-    json = dumps( result )
+    json = dumps(result)
     mime = 'application/json'
     # Append callback for JavaScript
     if request.args.get('callback'):
-        json = request.args.get('callback') + "("+json+");";
+        json = request.args.get('callback') + "(" + json + ");"
         mime = 'application/javascript'
     return Response(json, mimetype=mime), code
 
@@ -421,15 +430,17 @@ def search():
 
     q = request.args.get('q').encode('utf-8')
 
-    query_filter = {'type': None, 'lang': None, 'date': None,
+    query_filter = {
+        'type': None, 'lang': None, 'date': None,
         'tags': None, 'datestart': None, 'dateend': None,
-        'sortBy': None}
+        'sortBy': None, 'product': None
+    }
     filter = False
     for f in query_filter:
         if request.args.get(f):
             v = None
             # Some arguments may be list
-            if f in ('type', 'lang', 'sortBy', 'tags'):
+            if f in ('type', 'lang', 'sortBy', 'tags', 'product'):
                 vl = request.args.getlist(f)
                 if len(vl) == 1:
                     v = vl[0].encode('utf-8')
@@ -487,7 +498,7 @@ def search():
 """
 API Update endpoint
 """
-@app.route('/update/<path:domain>', methods = ['POST'])
+@app.route('/update/<path:domain>', methods=['POST'])
 def update(domain):
     global domains
     data = {'route': '/update', 'template': None}
@@ -496,7 +507,7 @@ def update(domain):
     if domain not in domains:
         data['result'] = {'error': 'Domain not allowed!'}
         return formatResponse(data, 403)
-    
+
     domain_id = domain.replace('.', '').replace(':', '').replace('/', '').encode('utf-8')
     data['domain'] = domain.encode('utf-8')
     url = 'http://%(domain)s/search.tsv' % data
@@ -588,4 +599,3 @@ Main launcher
 """
 if __name__ == '__main__':
         app.run(threaded=False, host='0.0.0.0', port=8000)
-
