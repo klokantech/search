@@ -37,6 +37,7 @@ if domains is None or len(domains) < 0:
 # Input data /data/<domain>/search.tsv
 domains = domains.split(',')
 
+
 # Return maximal number of results
 SEARCH_MAX_COUNT = 100
 SEARCH_DEFAULT_COUNT = 20
@@ -45,6 +46,10 @@ if getenv('SEARCH_MAX_COUNT'):
 if getenv('SEARCH_DEFAULT_COUNT'):
     SEARCH_DEFAULT_COUNT = int(getenv('SEARCH_DEFAULT_COUNT'))
 
+
+def get_domain_id(domain):
+    # Remove unexpected characters: .:/-,
+    return domain.replace('.', '').replace(':', '').replace('/', '').replace('-', '').replace(',', '')
 
 
 # ---------------------------------------------------------
@@ -421,7 +426,7 @@ def search():
     if domain not in domains:
         data['result'] = {'error': 'Domain not allowed!'}
         return formatResponse(data, 403)
-    domain_id = domain.replace('.', '').replace(':', '').replace('/', '')
+    domain_id = get_domain_id(domain)
     data['domain'] = domain
 
     index = 'search_{}_index'.format(domain_id)
@@ -508,7 +513,7 @@ def update(domain):
         data['result'] = {'error': 'Domain not allowed!'}
         return formatResponse(data, 403)
 
-    domain_id = domain.replace('.', '').replace(':', '').replace('/', '').encode('utf-8')
+    domain_id = get_domain_id(domain).encode('utf-8')
     data['domain'] = domain.encode('utf-8')
     data['protocol'] = 'http'
     if request.args.get('https', None):
