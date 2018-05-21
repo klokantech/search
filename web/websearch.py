@@ -427,6 +427,9 @@ API Search endpoint
 def search():
     global domains, domain_ids
     code = 400
+    has_filter = False
+    has_q = False
+    q = ''
 
     data = {'query': '', 'route': '/search', 'template': 'answer.html'}
 
@@ -445,14 +448,15 @@ def search():
     if request.args.get('index'):
         index = request.args.get('index').encode('utf-8')
 
-    q = request.args.get('q').encode('utf-8')
+    if request.args.get('q', None):
+        q = request.args.get('q').encode('utf-8')
+        has_q = True
 
     query_filter = {
         'type': None, 'lang': None, 'date': None,
         'tags': None, 'datestart': None, 'dateend': None,
         'sortBy': None, 'product': None
     }
-    filter = False
     for f in query_filter:
         if request.args.get(f):
             v = None
@@ -469,9 +473,9 @@ def search():
                 vl = request.args.get(f)
                 v = vl.encode('utf-8')
             query_filter[f] = v
-            filter = True
+            has_filter = True
 
-    if not q and not filter:
+    if not has_q and not has_filter:
         data['result'] = {'error': 'Missing query!'}
         return formatResponse(data, 404)
     data['query'] = q
