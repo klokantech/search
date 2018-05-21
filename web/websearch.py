@@ -599,7 +599,15 @@ Homepage (content only for debug)
 """
 @app.route('/')
 def home():
-    home_domain = getenv('HOME_DOMAIN', 'www.maptiler.com')
+    home_domain = getenv('HOME_DOMAIN', request.args.get('domain'))
+    data = {
+        'query': '',
+        'route': '/',
+        'template': 'answer.html'
+    }
+    if not home_domain:
+        data['result'] = {'error': 'Missing HOME_DOMAIN, specify in the query ?domain='}
+        return formatResponse(data, 400)
     return render_template('home.html', route='/search', domain=home_domain)
 
 
