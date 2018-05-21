@@ -344,7 +344,7 @@ def prepareResultJson(result, query_filter):
         'results': [],
         'startIndex': result['startIndex'],
         'count': count,
-        'totalResults': result['total_found'],
+        'totalResults': int(result['total_found']),
     }
     if 'message' in result and result['message']:
         response['message'] = result['message']
