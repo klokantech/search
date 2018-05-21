@@ -599,7 +599,8 @@ Homepage (content only for debug)
 """
 @app.route('/')
 def home():
-    return render_template('home.html', route='/search', domain='www.maptiler.com')
+    home_domain = getenv('HOME_DOMAIN', 'www.maptiler.com')
+    return render_template('home.html', route='/search', domain=home_domain)
 
 
 

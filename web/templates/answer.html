@@ -28,7 +28,7 @@
   {% for row in result['results'] %}
   <tr>
     <td>{{ loop.index }}</td>
-    {% for col in ('url', 'title', 'type', 'lang', 'date', 'tags', 'products') %}
+    {% for col in ('url', 'title', 'type', 'lang', 'date', 'tags', 'product') %}
     <td>
     {% if col in row %}
       {{ row[col] }}
