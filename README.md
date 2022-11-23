@@ -6,8 +6,6 @@ Initial deploy on http://search.klokantech.com/
 
 Indexing for projects: 
 - Kartenportal.CH (blog or pages)
-- MapTiler (how-to + web)
-- KlokanTech (blog + web) 
 
 Deployed via docker, system variable DOMAINS defines list of allowed domains (or URL prefixes) for indexing.
 
@@ -15,7 +13,7 @@ Always downloading and indexing the file:
 `http://[domain]/search.tsv`
 
 
-Example: http://www.kartenportal.ch/search.tsv or https://blog.klokantech.com/search.tsv
+Example: http://www.kartenportal.ch/search.tsv
 
 
 ## Input TSV format
